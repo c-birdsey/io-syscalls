@@ -4,6 +4,10 @@ authors:
     Calder Birdsey 
 
 known bugs: 
-
+    myread not registering EOF when reading- in file-copy test it loops (bytes_read never < 0)
+    
 sources: 
-    http://www.tutorialspoint.com/cprogramming/c_header_files.htm
+    http://www.tutorialspoint.com/cprogramming/c_header_files.htmi
+    https://www.geeksforgeeks.org/structures-c/
+    https://archive.org/stream/alicesadventures19033gut/19033.txt (THIS IS THE TEXT USED IN FILE-COPY)
+    https://www.programiz.com/c-programming/c-operators
