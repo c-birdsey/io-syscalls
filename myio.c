@@ -70,7 +70,7 @@ myclose(struct file_struct *bufdata){
 
 ssize_t
 myread(void *trg_buf, struct file_struct *bufdata, size_t count){
-    int bytes_loaded = bufdata->rd_buf_bytes; //bytes_loaded reps. bytes in read buf
+    int bytes_loaded = bufdata->rd_buf_bytes; //bytes_loaded represents bytes in read buf
     if(bytes_loaded < count){ 
         int bytes_read = read(bufdata->fd, bufdata->rd_buf, (BLOCK_SIZE-bytes_loaded));
         bytes_loaded += bytes_read;

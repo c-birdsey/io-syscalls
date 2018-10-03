@@ -7,6 +7,8 @@ known bugs:
     -myread not registering EOF when reading- file-copy test it loops (bytes_read never < 0)
     
     -error when initializing buffer with malloc in myopen(): currently doing so in the test file in order to run and test other functionality.  
+
+    -myseek implementation is potentially incomplete/yet to be fully tested
     
 sources: 
     http://www.tutorialspoint.com/cprogramming/c_header_files.htmi
