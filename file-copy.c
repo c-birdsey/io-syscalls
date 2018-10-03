@@ -33,6 +33,8 @@ main(int argc, char *argv[]){
         out_filename = argv[2];  
         bufdata_in = myopen(in_filename, O_RDONLY);
         bufdata_out = myopen(out_filename, O_WRONLY);
+
+        //initializing buffers here because not working in myio.c
         bufdata_in->rd_buf = malloc(20480); 
         bufdata_out->wr_buf = malloc(20480); 
 

@@ -1,4 +1,4 @@
-//calder birdsey
+
 //cs315 systems programming 
 //assignment 2 header file 
 //9.27.18 
