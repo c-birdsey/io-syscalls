@@ -4,14 +4,13 @@ authors:
     Calder Birdsey 
 
 known bugs: 
-    -myread not registering EOF when reading- file-copy test it loops (bytes_read never < 0)
-    
-    -error when initializing buffer with malloc in myopen(): currently doing so in the test file in order to run and test other functionality.  
 
-    -myseek implementation is potentially incomplete/yet to be fully tested
-    
+- using a file-copy program to test: copies the correct number of bytes (sometimes) but the bytes written are not the same exact ones in the origin file 
+
+-needs to handle specific situation in mywrite (highlighted in myio.c with comments) 
+
+
 sources: 
     http://www.tutorialspoint.com/cprogramming/c_header_files.htmi
     https://www.geeksforgeeks.org/structures-c/
-    https://archive.org/stream/alicesadventures19033gut/19033.txt (THIS IS THE TEXT USED IN FILE-COPY)
     https://www.programiz.com/c-programming/c-operators

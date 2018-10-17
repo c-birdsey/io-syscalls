@@ -10,6 +10,16 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#define BLOCK_SIZE 4096
+
+struct file_struct{
+    int fd; 
+    char rd_buf[BLOCK_SIZE];
+    ssize_t rd_buf_bytes;  
+    char wr_buf[BLOCK_SIZE];
+    ssize_t wr_buf_bytes;   
+};
+
 extern struct file_struct* myopen(const char *pathname, int flags); 
 extern int myclose(struct file_struct *bufdata);  
 extern ssize_t myread(void *trg_buf, struct file_struct *bufdata, size_t count); 
