@@ -36,16 +36,22 @@ main(int argc, char *argv[]){
         }
         myflush(bufdata_out);
 
+        //close files
+        myclose(bufdata_in);
+        myclose(bufdata_out);  
+
+        //reopen in file
+        bufdata_in = myopen(in_filename, O_RDONLY);
+
         //copy in file to seek file to test myseek implementation--NOT WORKING
         while((bytes_read = myread(buf, bufdata_in, BUFFER_SIZE)) > 0){
             mywrite(buf, bufdata_seek, bytes_read);  
-            myseek(bufdata_in, 100, SEEK_CUR); 
+            myseek(bufdata_in, 1024, SEEK_CUR); 
         }
         myflush(bufdata_out);  
 
         //close files
-        myclose(bufdata_in);
-        myclose(bufdata_out);  
+        myclose(bufdata_in); 
         myclose(bufdata_seek); 
     }
 }
