@@ -5,12 +5,13 @@ authors:
 
 known bugs: 
 
-- using a file-copy program to test: copies the correct number of bytes (sometimes) but the bytes written are not the same exact ones in the origin file 
+- unsure about the expected use and implementation of myseek-- also not working with current usage 
 
--needs to handle specific situation in mywrite (highlighted in myio.c with comments) 
+-myread and mywrite are verbose but functioning-- unsure if there is obvious refactoring 
 
 
 sources: 
     http://www.tutorialspoint.com/cprogramming/c_header_files.htmi
     https://www.geeksforgeeks.org/structures-c/
     https://www.programiz.com/c-programming/c-operators
+    https://www.gutenberg.org/files/11/11-h/11-h.htm (TESTING FILE CONTENT)

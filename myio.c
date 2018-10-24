@@ -17,9 +17,10 @@
 struct file_struct{
     int fd; 
     char rd_buf[BLOCK_SIZE];
-    ssize_t rd_buf_bytes;  
+    ssize_t rd_bytes; //number of bytes read
+    int buf_count;   //number of bytes in the buffer (normally = BLOCK_SIZE)
     char wr_buf[BLOCK_SIZE];
-    ssize_t wr_buf_bytes;   
+    ssize_t wr_bytes;  
 };
  
 struct file_struct *
@@ -33,10 +34,10 @@ myopen(const char *pathname, int flags){
 
     //initialize rd/wr buffers
     if(flags == (O_RDONLY | O_RDWR)){
-        bufdata->rd_buf_bytes = 0;
+        bufdata->rd_bytes = 0;
     } 
     if(flags == (O_WRONLY | O_RDWR)){
-        bufdata->wr_buf_bytes = 0; 
+        bufdata->wr_bytes = 0; 
     }
 
     //call open(2)
@@ -65,40 +66,43 @@ myclose(struct file_struct *bufdata){
 
 ssize_t
 myread(void *trg_buf, struct file_struct *bufdata, size_t count){
-    int rd_buf_bytes = bufdata->rd_buf_bytes; 
-    int bytes_read = 0; 
-    //printf("rd bytes loaded:%d\n", rd_buf_bytes); 
-    if(rd_buf_bytes < count){
-        bytes_read = read(bufdata->fd, bufdata->rd_buf, (BLOCK_SIZE-rd_buf_bytes)); 
-        rd_buf_bytes += bytes_read;
-        //printf("bytes loaded after read sys call:%d\n", rd_buf_bytes); 
-        //printf("bytes read:%d\n", bytes_read);  
+    int rd_bytes = bufdata->rd_bytes; 
+    int buf_count = bufdata->buf_count; 
+    int offset = buf_count-rd_bytes; 
+    if(rd_bytes < count){
+        if(rd_bytes != 0){
+            memcpy(bufdata->rd_buf, bufdata->rd_buf + offset, rd_bytes); 
+        }
+        buf_count = read(bufdata->fd, bufdata->rd_buf + rd_bytes, (BLOCK_SIZE-rd_bytes)); 
 
         //check for read(2) error
-        if(bytes_read == -1){
+        if(buf_count == -1){
             perror("read"); 
-            return bytes_read; 
+            return buf_count; 
         } 
+        buf_count += rd_bytes; 
+        rd_bytes = buf_count;
     }
-    memcpy(trg_buf, bufdata->rd_buf, count); 
-    if (rd_buf_bytes >= count){
-        rd_buf_bytes -= count; 
-        bufdata->rd_buf_bytes = rd_buf_bytes;  
-        //printf("count:%ld\n\n", count); 
+    offset = buf_count-rd_bytes;
+    memcpy(trg_buf, bufdata->rd_buf + offset, count); 
+    if (rd_bytes >= count){
+        rd_bytes -= count; 
+        bufdata->rd_bytes = rd_bytes;  
+        bufdata->buf_count = buf_count; 
         return count; 
     }
-    rd_buf_bytes = 0; 
-    bufdata->rd_buf_bytes = rd_buf_bytes;  
-    return bytes_read; 
+    bufdata->rd_bytes = 0;  
+    bufdata->buf_count = buf_count;
+    return buf_count; 
 }
 
 ssize_t
 mywrite(void *source_buf, struct file_struct *bufdata, size_t count){
-    int bytes_loaded = bufdata->wr_buf_bytes; 
-    //printf("wr bytes loaded: %d\n", bytes_loaded); 
-    if(bytes_loaded == BLOCK_SIZE){
-        int bytes_written = write(bufdata->fd, bufdata->wr_buf, BLOCK_SIZE);
-        //printf("bytes written: %d\n", bytes_written);
+    int bytes_loaded = bufdata->wr_bytes; 
+    int null_bytes = BLOCK_SIZE-bytes_loaded; 
+    if(null_bytes < count){
+        int bytes_written = write(bufdata->fd, bufdata->wr_buf, bytes_loaded);
+
         //check for write(2) error
         if(bytes_written == -1){
             perror("write"); 
@@ -106,22 +110,17 @@ mywrite(void *source_buf, struct file_struct *bufdata, size_t count){
         }  
         bytes_loaded = 0; 
     }
-    if(bytes_loaded < BLOCK_SIZE){
-        //how to handle a count > BLOCK_SIZE-bytes_loaded?
-        memcpy(bufdata->wr_buf, source_buf, count); 
-        bytes_loaded += count; 
-        //printf("wr buf isnt full, wr bytes loaded after copy: %d\n", bytes_loaded);         
-    }
-    bufdata->wr_buf_bytes = bytes_loaded;
-    //printf("wr bytes loaded: %d\n\n", bytes_loaded);  
+    memcpy((bufdata->wr_buf) + bytes_loaded, source_buf, count); 
+    bytes_loaded += count; 
+    bufdata->wr_bytes = bytes_loaded; 
     return bytes_loaded;                 
 }
 
 off_t
-myseek(int fd, off_t offset, int whence){ 
+myseek(struct file_struct *bufdata, off_t offset, int whence){ 
     int byte_offset = -1; 
     if((whence == SEEK_SET) | (whence == SEEK_CUR)){
-        byte_offset = lseek(fd, offset, whence);
+        byte_offset = lseek(bufdata->fd, offset, whence);
     }else{
         perror("myseek"); 
         return byte_offset; 
@@ -131,5 +130,5 @@ myseek(int fd, off_t offset, int whence){
 
 void
 myflush(struct file_struct *bufdata){
-    write(bufdata->fd, bufdata->wr_buf, bufdata->wr_buf_bytes);
+    write(bufdata->fd, bufdata->wr_buf, bufdata->wr_bytes);
 }

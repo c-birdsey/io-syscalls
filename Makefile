@@ -1,4 +1,4 @@
-CFLAGS = -Wall -pedantic 
+CFLAGS = -Wall -pedantic
 
 .PHONY: all
 all: test
