@@ -4,11 +4,7 @@ authors:
     Calder Birdsey 
 
 known bugs: 
-
-- unsure about the expected use and implementation of myseek-- also not working with current usage 
-
--myread and mywrite are verbose but functioning-- unsure if there is obvious refactoring 
-
+-none
 
 sources: 
     http://www.tutorialspoint.com/cprogramming/c_header_files.htmi
