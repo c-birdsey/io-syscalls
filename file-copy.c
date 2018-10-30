@@ -7,10 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 20
 
 int
-main(int argc, char *argv[]){
+main(int argc, char *argv[]) {
     char *in_filename, *out_filename, *seek_filename;
     ssize_t bytes_read; 
     struct file_struct *bufdata_in;
@@ -18,10 +18,10 @@ main(int argc, char *argv[]){
     struct file_struct *bufdata_seek; 
     char buf[BUFFER_SIZE]; 
 
-    if((argc) != 4){
+    if((argc) != 4) {
         printf("usage: %s source dest\n", argv[0]); 
         exit(EXIT_FAILURE); 
-    }else{
+    } else {
         //open files  
         in_filename = argv[1];
         out_filename = argv[2];  
@@ -31,7 +31,7 @@ main(int argc, char *argv[]){
         bufdata_seek = myopen(seek_filename, O_WRONLY); 
 
         //copy in file to out file
-        while((bytes_read = myread(buf, bufdata_in, BUFFER_SIZE)) > 0){
+        while((bytes_read = myread(buf, bufdata_in, BUFFER_SIZE)) > 0) {
             mywrite(buf, bufdata_out, bytes_read);  
         }
         myflush(bufdata_out);
@@ -44,18 +44,14 @@ main(int argc, char *argv[]){
         bufdata_in = myopen(in_filename, O_RDONLY);
 
         //copy in file to seek file to test myseek implementation--NOT WORKING
-        while((bytes_read = myread(buf, bufdata_in, BUFFER_SIZE)) > 0){
+        while((bytes_read = myread(buf, bufdata_in, BUFFER_SIZE)) > 0) {
             mywrite(buf, bufdata_seek, bytes_read);  
-            myseek(bufdata_in, 1024, SEEK_CUR); 
+            myseek(bufdata_in, bufdata_seek, 10, SEEK_CUR); 
         }
-        myflush(bufdata_out);  
-
+        myflush(bufdata_seek);  
+ 
         //close files
         myclose(bufdata_in); 
         myclose(bufdata_seek); 
     }
 }
-
-
-
-         
