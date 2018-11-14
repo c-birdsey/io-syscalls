@@ -11,5 +11,5 @@ test: file-copy.o myio.o
 
 .PHONY: clean 
 clean: 
-	rm -f myio.o file-copy.o test 
+	rm -f myio.o file-copy.o test
 

@@ -1,6 +1,6 @@
 //calder birdsey
 //cs315 systems programming 
-//assignment 2 
+//assignment 2: myio 
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -10,25 +10,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "myio.h"
 
-#define BLOCK_SIZE 100
-
-//define struct file_struct
-struct file_struct{
-    int fd; 
-    char rd_buf[BLOCK_SIZE];
-    ssize_t rd_bytes; //number of bytes left to be read in buffer
-    int buf_count;   //number of total bytes loaded in buffer (normally == BLOCK_SIZE, except for the final read(2) call)
-    char wr_buf[BLOCK_SIZE];
-    ssize_t wr_bytes;  
-};
- 
 struct file_struct *
 myopen(const char *pathname, int flags) {
     //initialize struct
     struct file_struct *bufdata = malloc(sizeof(*bufdata));  
     if(bufdata == NULL) {
-        perror("malloc"); 
+        //perror("malloc"); 
         return NULL; 
     }
 
@@ -45,7 +34,8 @@ myopen(const char *pathname, int flags) {
     
     //check for open(2) error
     if(bufdata->fd == -1) {
-        perror("open");
+        //perror("open");
+        free(bufdata);
         return NULL; 
     }
     return bufdata;
@@ -57,7 +47,7 @@ myclose(struct file_struct *bufdata) {
     
     //check for close(2) error
     if(close_status == -1) { 
-        perror("close");
+        //perror("close");
         return close_status; 
     }
     free(bufdata);
@@ -77,7 +67,7 @@ myread(void *trg_buf, struct file_struct *bufdata, size_t count) {
 
         //check for read(2) error
         if(buf_count == -1) {
-            perror("read"); 
+            //perror("read"); 
             return buf_count; 
         } 
         buf_count += rd_bytes; 
@@ -105,7 +95,7 @@ mywrite(void *source_buf, struct file_struct *bufdata, size_t count) {
 
         //check for write(2) error
         if(bytes_written == -1) {
-            perror("write"); 
+            //perror("write"); 
             return bytes_written;  
         }  
         bytes_loaded = 0; 
@@ -117,23 +107,9 @@ mywrite(void *source_buf, struct file_struct *bufdata, size_t count) {
 }
 
 off_t
-myseek1(struct file_struct *bufdata, off_t offset, int whence) { 
-    int byte_offset = -1; 
-    if((whence == SEEK_SET) | (whence == SEEK_CUR)) {
-        byte_offset = lseek(bufdata->fd, offset, whence);
-    } else {
-        perror("myseek"); 
-        return byte_offset; 
-    }
-    return byte_offset; 
-}
-
-extern void myflush(struct file_struct *bufdata);
-
-off_t
 myseek(struct file_struct *bufdata_in, struct file_struct *bufdata_out, off_t offset, int whence) {
     int bytes_unread = bufdata_in->rd_bytes; 
-    if(offset < bytes_unread && whence == SEEK_CUR) {
+    if((offset < bytes_unread) && (whence == SEEK_CUR)) {
         bytes_unread -= offset;
     } else {
         if(whence == SEEK_SET) {
@@ -150,4 +126,5 @@ myseek(struct file_struct *bufdata_in, struct file_struct *bufdata_out, off_t of
 void
 myflush(struct file_struct *bufdata) {
     write(bufdata->fd, bufdata->wr_buf, bufdata->wr_bytes);
+    bufdata->wr_bytes = 0; 
 }
