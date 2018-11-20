@@ -17,7 +17,6 @@ myopen(const char *pathname, int flags) {
     //initialize struct
     struct file_struct *bufdata = malloc(sizeof(*bufdata));  
     if(bufdata == NULL) {
-        //perror("malloc"); 
         return NULL; 
     }
 
@@ -30,11 +29,10 @@ myopen(const char *pathname, int flags) {
     }
 
     //call open(2)
-    bufdata->fd = open(pathname, flags);
+    bufdata->fd = open(pathname, 0666); 
     
     //check for open(2) error
     if(bufdata->fd == -1) {
-        //perror("open");
         free(bufdata);
         return NULL; 
     }
@@ -43,11 +41,16 @@ myopen(const char *pathname, int flags) {
 
 int
 myclose(struct file_struct *bufdata) {
+    //flush file if necessary 
+    if (bufdata->wr_bytes != 0) {
+        myflush(bufdata); 
+    }
+
+    //close file 
     int close_status = close(bufdata->fd);  
-    
+
     //check for close(2) error
     if(close_status == -1) { 
-        //perror("close");
         return close_status; 
     }
     free(bufdata);
@@ -67,7 +70,6 @@ myread(void *trg_buf, struct file_struct *bufdata, size_t count) {
 
         //check for read(2) error
         if(buf_count == -1) {
-            //perror("read"); 
             return buf_count; 
         } 
         buf_count += rd_bytes; 
@@ -87,7 +89,7 @@ myread(void *trg_buf, struct file_struct *bufdata, size_t count) {
 }
 
 ssize_t
-mywrite(void *source_buf, struct file_struct *bufdata, size_t count) {
+mywrite(struct file_struct *bufdata, void *source_buf, size_t count) {
     int bytes_loaded = bufdata->wr_bytes; 
     int null_bytes = BLOCK_SIZE-bytes_loaded; 
     if(null_bytes < count) {
@@ -95,7 +97,6 @@ mywrite(void *source_buf, struct file_struct *bufdata, size_t count) {
 
         //check for write(2) error
         if(bytes_written == -1) {
-            //perror("write"); 
             return bytes_written;  
         }  
         bytes_loaded = 0; 
