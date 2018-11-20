@@ -31,7 +31,7 @@ main(int argc, char *argv[]) {
         bufdata_out = myopen(out_filename, O_WRONLY); 
 
         //copy inFile to outFile
-        while((bytes_read = myread(buf, bufdata_in, BUFFER_SIZE)) > 0) {
+        while((bytes_read = myread(bufdata_in, buf, BUFFER_SIZE)) > 0) {
             //printf("bytes read: %ld\n", bytes_read);    
             mywrite(bufdata_out, buf, bytes_read);  
         }
@@ -52,7 +52,7 @@ main(int argc, char *argv[]) {
 
             int seek_count = 0; 
             //copy inFile to seekFile to test myseek implementation-- NOT WORKING
-            while((bytes_read = myread(buf, bufdata_in, BUFFER_SIZE)) > 0) {
+            while((bytes_read = myread(bufdata_in, buf, BUFFER_SIZE)) > 0) {
                 mywrite(bufdata_seek, buf, bytes_read);  
                 myseek(bufdata_in, bufdata_seek, 10, SEEK_CUR); 
                 seek_count += 1; 

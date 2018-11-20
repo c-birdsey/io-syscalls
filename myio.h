@@ -23,7 +23,7 @@ struct file_struct{
 
 struct file_struct* myopen(const char *pathname, int flags); 
 int myclose(struct file_struct *bufdata);  
-ssize_t myread(void *trg_buf, struct file_struct *bufdata, size_t count); 
+ssize_t myread(struct file_struct *bufdata, void *trg_buf, size_t count); 
 ssize_t mywrite(struct file_struct *bufdata, void *source_buf, size_t count);
 off_t myseek(struct file_struct *bufdata_in, struct file_struct *bufdata_out, off_t offset, int whence); 
 void myflush(struct file_struct *bufdata); 

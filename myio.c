@@ -58,7 +58,7 @@ myclose(struct file_struct *bufdata) {
 }
 
 ssize_t
-myread(void *trg_buf, struct file_struct *bufdata, size_t count) {
+myread(struct file_struct *bufdata, void *trg_buf, size_t count) {
     int rd_bytes = bufdata->rd_bytes; 
     int buf_count = bufdata->buf_count; 
     int offset = buf_count-rd_bytes; 
