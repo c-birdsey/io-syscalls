@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BUFFER_SIZE 500
+#define BUFFER_SIZE 1000
 
 int
 main(int argc, char *argv[]) {
@@ -32,8 +32,9 @@ main(int argc, char *argv[]) {
 
         //copy inFile to outFile
         while((bytes_read = myread(bufdata_in, buf, BUFFER_SIZE)) > 0) {
-            //printf("bytes read: %ld\n", bytes_read);    
-            mywrite(bufdata_out, buf, bytes_read);  
+            printf("bytes read: %ld\n", bytes_read);    
+            ssize_t wr_bytes = mywrite(bufdata_out, buf, bytes_read);  
+            printf("bytes written: %ld\n", wr_bytes);    
         }
 
         //close files
@@ -63,6 +64,21 @@ main(int argc, char *argv[]) {
             myclose(bufdata_in); 
             myclose(bufdata_seek); 
         }
+
+        printf("REAL SYS CALLS:\n");
+
+        int out = open(out_filename, O_WRONLY); 
+        int in = open(in_filename, O_RDONLY);
+
+        while((bytes_read = read(in, buf, BUFFER_SIZE)) > 0) {
+            printf("bytes read: %ld\n", bytes_read);    
+            ssize_t wr_bytes = write(out, buf, bytes_read);  
+            printf("bytes written: %ld\n", wr_bytes);    
+        } 
+
+        close(in); 
+        close(out); 
+
         exit(EXIT_SUCCESS);
     }
 }

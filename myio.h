@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-#define BLOCK_SIZE 1024
+#define BLOCK_SIZE 4096
 
 struct file_struct{
     int fd; 

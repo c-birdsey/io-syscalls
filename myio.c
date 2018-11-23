@@ -19,17 +19,22 @@ myopen(const char *pathname, int flags) {
     if(bufdata == NULL) {
         return NULL; 
     }
+    //initialize rd/wr buffers and mode flag 
+    int MODE = 0; 
+    bufdata->wr_bytes = 0;
+    bufdata->rd_bytes = 0;
+    bufdata->buf_count = 0; 
 
-    //initialize rd/wr buffers
-    if(flags == (O_RDONLY | O_RDWR)) {
-        bufdata->rd_bytes = 0;
-    } 
-    if(flags == (O_WRONLY | O_RDWR)) {
-        bufdata->wr_bytes = 0; 
+    if(flags == (O_CREAT | O_TRUNC)) {
+        MODE = 1; 
     }
 
     //call open(2)
-    bufdata->fd = open(pathname, 0666); 
+    if(MODE == 1) {
+        bufdata->fd = open(pathname, flags, 0666);
+    } else {
+        bufdata->fd = open(pathname, flags);
+    }
     
     //check for open(2) error
     if(bufdata->fd == -1) {
@@ -92,9 +97,12 @@ ssize_t
 mywrite(struct file_struct *bufdata, void *source_buf, size_t count) {
     int bytes_loaded = bufdata->wr_bytes; 
     int null_bytes = BLOCK_SIZE-bytes_loaded; 
+    int WRITTEN = 0; //write flag to determine what is returned 
+    int bytes_written; 
     if(null_bytes < count) {
-        int bytes_written = write(bufdata->fd, bufdata->wr_buf, bytes_loaded);
-
+        bytes_written = write(bufdata->fd, bufdata->wr_buf, bytes_loaded);
+        WRITTEN = 1; 
+    
         //check for write(2) error
         if(bytes_written == -1) {
             return bytes_written;  
@@ -104,7 +112,13 @@ mywrite(struct file_struct *bufdata, void *source_buf, size_t count) {
     memcpy((bufdata->wr_buf) + bytes_loaded, source_buf, count); 
     bytes_loaded += count; 
     bufdata->wr_bytes = bytes_loaded; 
-    return bytes_loaded;                 
+    //return bytes_loaded;    
+    
+    if(WRITTEN == 1) {
+        return bytes_written; 
+    } else {
+        return 0;
+    }
 }
 
 off_t
