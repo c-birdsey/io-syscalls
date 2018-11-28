@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define BUFFER_SIZE 1000
+#define BUFFER_SIZE 13
 
 int
 main(int argc, char *argv[]) {

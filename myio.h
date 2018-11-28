@@ -10,13 +10,13 @@
 #include <unistd.h>
 #include <stdio.h>
 
-#define BLOCK_SIZE 4096
+#define BLOCK_SIZE 10
 
 struct file_struct{
     int fd; 
     char rd_buf[BLOCK_SIZE];
     ssize_t rd_bytes;
-    int buf_count;   
+    int rdbuf_count;   
     char wr_buf[BLOCK_SIZE];
     ssize_t wr_bytes;  
 };

@@ -1,7 +1,7 @@
 CFLAGS = -Wall -pedantic
 
 .PHONY: all
-all: test
+all: test 
 
 test2: test-file2.o myio.o
 	gcc -o $@ $^

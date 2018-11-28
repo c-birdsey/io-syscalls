@@ -19,23 +19,14 @@ myopen(const char *pathname, int flags) {
     if(bufdata == NULL) {
         return NULL; 
     }
-    //initialize rd/wr buffers and mode flag 
-    int MODE = 0; 
+    //initialize rd/wr buffers
     bufdata->wr_bytes = 0;
     bufdata->rd_bytes = 0;
-    bufdata->buf_count = 0; 
-
-    if(flags == (O_CREAT | O_TRUNC)) {
-        MODE = 1; 
-    }
+    bufdata->rdbuf_count = 0; 
 
     //call open(2)
-    if(MODE == 1) {
-        bufdata->fd = open(pathname, flags, 0666);
-    } else {
-        bufdata->fd = open(pathname, flags);
-    }
-    
+    bufdata->fd = open(pathname, flags, 0666);
+
     //check for open(2) error
     if(bufdata->fd == -1) {
         free(bufdata);
@@ -65,32 +56,35 @@ myclose(struct file_struct *bufdata) {
 ssize_t
 myread(struct file_struct *bufdata, void *trg_buf, size_t count) {
     int rd_bytes = bufdata->rd_bytes; 
-    int buf_count = bufdata->buf_count; 
-    int offset = buf_count-rd_bytes; 
+    int rdbuf_count = bufdata->rdbuf_count; 
+    int offset = rdbuf_count-rd_bytes; 
+    if(count > BLOCK_SIZE) {
+        return read(bufdata->fd, trg_buf, count); 
+    }
     if(rd_bytes < count) {
         if(rd_bytes != 0) {
             memcpy(bufdata->rd_buf, bufdata->rd_buf + offset, rd_bytes); 
         }
-        buf_count = read(bufdata->fd, bufdata->rd_buf + rd_bytes, (BLOCK_SIZE-rd_bytes)); 
+        rdbuf_count = read(bufdata->fd, bufdata->rd_buf + rd_bytes, (BLOCK_SIZE-rd_bytes)); 
 
         //check for read(2) error
-        if(buf_count == -1) {
-            return buf_count; 
+        if(rdbuf_count == -1) {
+            return rdbuf_count; 
         } 
-        buf_count += rd_bytes; 
-        rd_bytes = buf_count;
+        rdbuf_count += rd_bytes; 
+        rd_bytes = rdbuf_count;
     }
-    offset = buf_count-rd_bytes;
+    offset = rdbuf_count-rd_bytes;
     memcpy(trg_buf, bufdata->rd_buf + offset, count); 
     if (rd_bytes >= count) {
         rd_bytes -= count; 
         bufdata->rd_bytes = rd_bytes;  
-        bufdata->buf_count = buf_count; 
+        bufdata->rdbuf_count = rdbuf_count; 
         return count; 
     }
     bufdata->rd_bytes = 0;  
-    bufdata->buf_count = buf_count;
-    return buf_count; 
+    bufdata->rdbuf_count = rdbuf_count;
+    return rdbuf_count; 
 }
 
 ssize_t
@@ -99,6 +93,9 @@ mywrite(struct file_struct *bufdata, void *source_buf, size_t count) {
     int null_bytes = BLOCK_SIZE-bytes_loaded; 
     int WRITTEN = 0; //write flag to determine what is returned 
     int bytes_written; 
+    if(count > BLOCK_SIZE){
+        return write(bufdata->fd, source_buf, count); 
+    }
     if(null_bytes < count) {
         bytes_written = write(bufdata->fd, bufdata->wr_buf, bytes_loaded);
         WRITTEN = 1; 
@@ -112,8 +109,6 @@ mywrite(struct file_struct *bufdata, void *source_buf, size_t count) {
     memcpy((bufdata->wr_buf) + bytes_loaded, source_buf, count); 
     bytes_loaded += count; 
     bufdata->wr_bytes = bytes_loaded; 
-    //return bytes_loaded;    
-    
     if(WRITTEN == 1) {
         return bytes_written; 
     } else {
