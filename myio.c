@@ -91,14 +91,17 @@ ssize_t
 mywrite(struct file_struct *bufdata, void *source_buf, size_t count) {
     int bytes_loaded = bufdata->wr_bytes; 
     int null_bytes = BLOCK_SIZE-bytes_loaded; 
-    int WRITTEN = 0; //write flag to determine what is returned 
+    //int written_flag = 0; //write flag to determine what is returned 
     int bytes_written; 
-    if(count > BLOCK_SIZE){
+    if(count > BLOCK_SIZE){ 
+        write(bufdata->fd, bufdata->wr_buf, bytes_loaded);
+        bytes_loaded = 0; 
+        bufdata->wr_bytes = bytes_loaded; 
         return write(bufdata->fd, source_buf, count); 
     }
     if(null_bytes < count) {
         bytes_written = write(bufdata->fd, bufdata->wr_buf, bytes_loaded);
-        WRITTEN = 1; 
+        //written_flag = 1; 
     
         //check for write(2) error
         if(bytes_written == -1) {
@@ -109,11 +112,12 @@ mywrite(struct file_struct *bufdata, void *source_buf, size_t count) {
     memcpy((bufdata->wr_buf) + bytes_loaded, source_buf, count); 
     bytes_loaded += count; 
     bufdata->wr_bytes = bytes_loaded; 
-    if(WRITTEN == 1) {
-        return bytes_written; 
+    /*if(written_flag == 1) {
+        return count; //bytes_written; 
     } else {
-        return 0;
-    }
+        return count; //0? */
+    return count; 
+
 }
 
 off_t
