@@ -9,7 +9,7 @@
 #include <stddef.h>
 #include <unistd.h>
 #include <stdio.h>
-
+ 
 #define BLOCK_SIZE 1000
 
 struct file_struct{

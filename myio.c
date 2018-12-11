@@ -58,8 +58,12 @@ myread(struct file_struct *bufdata, void *trg_buf, size_t count) {
     int rd_bytes = bufdata->rd_bytes; 
     int rdbuf_count = bufdata->rdbuf_count; 
     int offset = rdbuf_count-rd_bytes; 
-    if(count > BLOCK_SIZE) {
-        return read(bufdata->fd, trg_buf, count); 
+    if(count > BLOCK_SIZE) { 
+        memcpy(trg_buf, bufdata->rd_buf + offset, rd_bytes); 
+        void *trg_ptr = (char *)trg_buf + rd_bytes; 
+        read(bufdata->fd, trg_ptr, count - rd_bytes);
+        bufdata->rd_bytes = 0; 
+        return count; 
     }
     if(rd_bytes < count) {
         if(rd_bytes != 0) {
@@ -95,8 +99,7 @@ mywrite(struct file_struct *bufdata, void *source_buf, size_t count) {
     int bytes_written; 
     if(count > BLOCK_SIZE){ 
         write(bufdata->fd, bufdata->wr_buf, bytes_loaded);
-        bytes_loaded = 0; 
-        bufdata->wr_bytes = bytes_loaded; 
+        bufdata->wr_bytes = 0; 
         return write(bufdata->fd, source_buf, count); 
     }
     if(null_bytes < count) {
