@@ -19,6 +19,11 @@ struct file_struct{
     int rdbuf_count;   
     char wr_buf[BLOCK_SIZE];
     ssize_t wr_bytes;  
+
+    //used if reading and writing on same file
+    int rdwr_off; 
+    int cur_off; 
+    int rdwr_flag; 
 };
 
 struct file_struct* myopen(const char *pathname, int flags); 

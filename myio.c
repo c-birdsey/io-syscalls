@@ -23,6 +23,9 @@ myopen(const char *pathname, int flags) {
     bufdata->wr_bytes = 0;
     bufdata->rd_bytes = 0;
     bufdata->rdbuf_count = 0; 
+    bufdata->rdwr_flag = 0; //used to tell what action was last done on this fd 
+    bufdata->rdwr_off = 0; 
+    bufdata->cur_off = 0; 
 
     //call open(2)
     bufdata->fd = open(pathname, flags, 0666);
@@ -55,24 +58,37 @@ myclose(struct file_struct *bufdata) {
 
 ssize_t
 myread(struct file_struct *bufdata, void *trg_buf, size_t count) {
+    //condition to check if mywrite was called prior to read call (RDWR case)
+    if(bufdata->rdwr_flag == 2) {
+        bufdata->rd_bytes = 0; 
+        bufdata->rdbuf_count = 0; 
+        myflush(bufdata); 
+    } else {
+        lseek(bufdata->fd, bufdata->rdwr_off, SEEK_SET); 
+    }
+    bufdata->rdwr_flag = 1; 
     int rd_bytes = bufdata->rd_bytes; 
     int rdbuf_count = bufdata->rdbuf_count; 
     int offset = rdbuf_count-rd_bytes; 
     if(count > BLOCK_SIZE) { 
-        memcpy(trg_buf, bufdata->rd_buf + offset, rd_bytes); 
-        void *trg_ptr = (char *)trg_buf + rd_bytes; 
-        read(bufdata->fd, trg_ptr, count - rd_bytes);
+        memcpy(trg_buf, bufdata->rd_buf + offset, rd_bytes);  
+        char *trg_ptr = (char *)trg_buf + rd_bytes;
+        int amt = read(bufdata->fd, trg_ptr, count - rd_bytes);
+        bufdata->rdwr_off = lseek(bufdata->fd, 0, SEEK_CUR); 
         bufdata->rd_bytes = 0; 
-        return count; 
+        return amt;
     }
     if(rd_bytes < count) {
         if(rd_bytes != 0) {
             memcpy(bufdata->rd_buf, bufdata->rd_buf + offset, rd_bytes); 
-        }
+        } 
+        bufdata->cur_off = lseek(bufdata->fd, 0, SEEK_CUR); 
         rdbuf_count = read(bufdata->fd, bufdata->rd_buf + rd_bytes, (BLOCK_SIZE-rd_bytes)); 
-
+        bufdata->rdwr_off = lseek(bufdata->fd, 0, SEEK_CUR); 
+        lseek(bufdata->fd, bufdata->cur_off, SEEK_SET); 
         //check for read(2) error
         if(rdbuf_count == -1) {
+            bufdata->cur_off = lseek(bufdata->fd, rdbuf_count, SEEK_CUR); 
             return rdbuf_count; 
         } 
         rdbuf_count += rd_bytes; 
@@ -84,18 +100,23 @@ myread(struct file_struct *bufdata, void *trg_buf, size_t count) {
         rd_bytes -= count; 
         bufdata->rd_bytes = rd_bytes;  
         bufdata->rdbuf_count = rdbuf_count; 
+        bufdata->cur_off = lseek(bufdata->fd, count, SEEK_CUR); 
         return count; 
     }
     bufdata->rd_bytes = 0;  
     bufdata->rdbuf_count = rdbuf_count;
+    bufdata->cur_off = lseek(bufdata->fd, rdbuf_count, SEEK_CUR); 
     return rdbuf_count; 
 }
 
 ssize_t
 mywrite(struct file_struct *bufdata, void *source_buf, size_t count) {
+    if(bufdata->rdwr_flag == 1) {
+        lseek(bufdata->fd, bufdata->cur_off, SEEK_SET); 
+    }
+    bufdata->rdwr_flag = 2; 
     int bytes_loaded = bufdata->wr_bytes; 
     int null_bytes = BLOCK_SIZE-bytes_loaded; 
-    //int written_flag = 0; //write flag to determine what is returned 
     int bytes_written; 
     if(count > BLOCK_SIZE){ 
         write(bufdata->fd, bufdata->wr_buf, bytes_loaded);
@@ -104,8 +125,6 @@ mywrite(struct file_struct *bufdata, void *source_buf, size_t count) {
     }
     if(null_bytes < count) {
         bytes_written = write(bufdata->fd, bufdata->wr_buf, bytes_loaded);
-        //written_flag = 1; 
-    
         //check for write(2) error
         if(bytes_written == -1) {
             return bytes_written;  
@@ -115,12 +134,7 @@ mywrite(struct file_struct *bufdata, void *source_buf, size_t count) {
     memcpy((bufdata->wr_buf) + bytes_loaded, source_buf, count); 
     bytes_loaded += count; 
     bufdata->wr_bytes = bytes_loaded; 
-    /*if(written_flag == 1) {
-        return count; //bytes_written; 
-    } else {
-        return count; //0? */
     return count; 
-
 }
 
 off_t

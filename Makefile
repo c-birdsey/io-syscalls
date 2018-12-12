@@ -1,7 +1,7 @@
 CFLAGS = -Wall -pedantic
 
 .PHONY: all
-all: test
+all: file-copy
 
 test1000: test-1000buf.o myio.o
 	gcc -o $@ $^ 
@@ -9,10 +9,13 @@ test1000: test-1000buf.o myio.o
 test50: test-50buf.o myio.o
 	gcc -o $@ $^
 
-test3: test-file3.o myio.o 
-	gcc -o $@ $^
+test-out: test_outputs.o myio.o 
+	gcc -o $@ $^ 
 
-test: file-copy.o myio.o 
+test-inter: test_inter.o myio.o 
+	gcc -o $@ $^ 
+
+file-copy: file-copy.o myio.o 
 	gcc -o $@ $^
 
 %.o: %.c 
@@ -20,5 +23,5 @@ test: file-copy.o myio.o
 
 .PHONY: clean 
 clean: 
-	rm -f myio.o file-copy.o test-file2.o test-file3.o test-1000buf.o test-50buf.o test test2 test3 test50 test1000
+	rm -f myio.o file-copy.o test_inter.o test_outputs.o test-1000buf.o test-50buf.o file-copy test50 test1000 test-inter test-out
 

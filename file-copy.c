@@ -9,7 +9,6 @@
 
 #define BUFFER_SIZE 500
 
-
 int
 main(int argc, char *argv[]) {
     char *in_filename, *out_filename; 
@@ -21,7 +20,7 @@ main(int argc, char *argv[]) {
     if((argc < 3) || (argc > 4)) {
         printf("usage: %s file1 file2 [file3]\n", argv[0]); 
         printf("  file1: source file\n");
-        printf("  file2: destination file\n");
+        printf("  file2: destinationm file\n");
         printf("  file3: optional destination file to test myseek\n"); 
         exit(EXIT_FAILURE); 
     } else {
@@ -65,7 +64,7 @@ main(int argc, char *argv[]) {
             myclose(bufdata_in); 
             myclose(bufdata_seek); 
         }
-
+        /*
         printf("REAL SYS CALLS:\n");
 
         int out = open(out_filename, O_WRONLY); 
@@ -81,5 +80,6 @@ main(int argc, char *argv[]) {
         close(out); 
 
         exit(EXIT_SUCCESS);
+        */
     }
 }
