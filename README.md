@@ -1,6 +1,6 @@
 # Implementing I/O syscall wrappers
 
-Middlebury College CS315 Systems Programming- Fall 2018: This assignment attempts to increase the efficiency of I/O-related system calls by implementing block buffering. These are simple wrapper functions around the I/O sys calls open(2), close(2), read(2), write(2), and lseek(2).
+Fall 2018: This assignment attempts to increase the efficiency of I/O-related system calls by implementing block buffering. These are simple wrapper functions around the I/O sys calls open(2), close(2), read(2), write(2), and lseek(2).
 
 ## Authors
 
